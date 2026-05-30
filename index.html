@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberpunk Clicker Battle - Two Players</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', 'Roboto Mono', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a0033 50%, #0a0e27 100%);
+            color: #00ff88;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* АНИМИРУЮЩИЙСЯ ФОНОВЫЙ ГРАДИЕНТ */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 0, 128, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+            animation: bgShift 15s ease-in-out infinite;
+        }
+
+        @keyframes bgShift {
+            0%, 100% {
+                background: radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 80% 80%, rgba(255, 0, 128, 0.1) 0%, transparent 50%);
+            }
+            50% {
+                background: radial-gradient(circle at 80% 30%, rgba(0, 255, 136, 0.15) 0%, transparent 50%),
+                            radial-gradient(circle at 20% 70%, rgba(255, 0, 128, 0.15) 0%, transparent 50%);
+            }
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .player-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 14, 39, 0.5);
+            backdrop-filter: blur(10px);
+            border: 2px solid #00ff88;
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3),
+                        inset 0 0 20px rgba(0, 255, 136, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .player-section.player1 {
+            border-color: #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3),
+                        inset 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+
+        .player-section.player2 {
+            border-color: #ff0080;
+            box-shadow: 0 0 30px rgba(255, 0, 128, 0.3),
+                        inset 0 0 20px rgba(255, 0, 128, 0.1);
+        }
+
+        .player-section.winning {
+            animation: victoryPulse 0.5s ease infinite;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.8),
+                        inset 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        @keyframes victoryPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 50px rgba(0, 255, 136, 0.8),
+                            inset 0 0 30px rgba(0, 255, 136, 0.3);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 0 80px rgba(0, 255, 136, 1),
+                            inset 0 0 40px rgba(0, 255, 136, 0.5);
+            }
+        }
+
+        .player-name {
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .player-name.player1 {
+            color: #00ff88;
+        }
+
+        .player-name.player2 {
+            color: #ff0080;
+        }
+
+        .score-display {
+            font-size: 72px;
+            font-weight: 900;
+            margin-bottom: 30px;
+            font-family: 'Roboto Mono', monospace;
+            text-shadow: 0 0 20px currentColor;
+            letter-spacing: 2px;
+            animation: scoreFlip 0.3s ease;
+        }
+
+        @keyframes scoreFlip {
+            0% {
+                transform: rotateY(0deg);
+            }
+            100% {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .click-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 3px solid currentColor;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.3));
+            color: inherit;
+            font-size: 48px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px currentColor,
+                        inset 0 0 20px currentColor;
+            margin-bottom: 40px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .click-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px currentColor,
+                        inset 0 0 30px currentColor;
+        }
+
+        .click-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 20px currentColor,
+                        inset 0 0 15px currentColor;
+        }
+
+        .click-particle {
+            position: absolute;
+            pointer-events: none;
+            font-weight: bold;
+            font-size: 24px;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        .click-particle.player1 {
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88;
+        }
+
+        .click-particle.player2 {
+            color: #ff0080;
+            text-shadow: 0 0 10px #ff0080;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) translateX(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) translateX(20px) scale(0);
+            }
+        }
+
+        .status-bar {
+            width: 100%;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid currentColor;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .status-bar.player1 {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .status-bar.player2 {
+            border-color: #ff0080;
+            color: #ff0080;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: linear-gradient(135deg, rgba(10, 14, 39, 0.95) 0%, rgba(26, 0, 51, 0.95) 100%);
+            border: 3px solid #00ff88;
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 600px;
+            animation: modalSlideIn 0.5s ease;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.5),
+                        inset 0 0 30px rgba(0, 255, 136, 0.1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px #00ff88;
+            color: #00ff88;
+        }
+
+        .modal .winner-name {
+            font-size: 36px;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        .modal .winner-name.player1 {
+            color: #00ff88;
+        }
+
+        .modal .winner-name.player2 {
+            color: #ff0080;
+        }
+
+        .modal-score {
+            font-size: 24px;
+            margin-bottom: 40px;
+            color: #00ff88;
+            letter-spacing: 2px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .modal-btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid #00ff88;
+            background: transparent;
+            color: #00ff88;
+            cursor: pointer;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .modal-btn:hover {
+            background: #00ff88;
+            color: #0a0e27;
+            box-shadow: 0 0 20px #00ff88;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .click-button {
+                width: 150px;
+                height: 150px;
+                font-size: 36px;
+            }
+
+            .score-display {
+                font-size: 48px;
+            }
+
+            .player-name {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .player-section {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            .click-button {
+                width: 120px;
+                height: 120px;
+                font-size: 28px;
+                margin-bottom: 20px;
+            }
+
+            .score-display {
+                font-size: 36px;
+                margin-bottom: 20px;
+            }
+
+            .player-name {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+
+            .modal {
+                padding: 40px 20px;
+                max-width: 90%;
+            }
+
+            .modal h1 {
+                font-size: 32px;
+            }
+
+            .modal-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- КОНТЕЙНЕР ИГРЫ -->
+    <div class="container">
+        <!-- ПЕРВЫЙ ИГРОК -->
+        <div class="player-section player1" id="player1Section">
+            <div class="status-bar player1" id="player1Status">Player 1: READY</div>
+            <div class="player-name player1">Player 1</div>
+            <div class="score-display player1" id="player1Score">0</div>
+            <button class="click-button player1" id="player1Button">
+                <i class="fas fa-mouse"></i>
+            </button>
+        </div>
+
+        <!-- ВТОРОЙ ИГРОК -->
+        <div class="player-section player2" id="player2Section">
+            <div class="status-bar player2" id="player2Status">Player 2: READY</div>
+            <div class="player-name player2">Player 2</div>
+            <div class="score-display player2" id="player2Score">0</div>
+            <button class="click-button player2" id="player2Button">
+                <i class="fas fa-mouse"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬ ПОБЕДЫ -->
+    <div class="modal-overlay" id="winnerModal">
+        <div class="modal">
+            <h1>GAME OVER!</h1>
+            <div class="winner-name" id="winnerName">Player 1</div>
+            <div class="modal-score" id="winnerScore">Score: 0</div>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="restartBtn">RESTART</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // ============== FIREBASE CONFIGURATION ==============
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getDatabase, ref, update, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
+        // ⚠️ ПОДСТАВЬТЕ СВОЙ КОНФИГ ОТСЮДА: https://console.firebase.google.com/
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "your-project.firebaseapp.com",
+            databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+            projectId: "your-project",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abc123",
+            measurementId: "G-ABC123"
+        };
+
+        // Initialize Firebase
+        let app = null;
+        let database = null;
+        let firebaseReady = false;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            database = getDatabase(app);
+            firebaseReady = true;
+        } catch (error) {
+            console.error('Firebase Error:', error);
+            firebaseReady = false;
+        }
+
+        // ============== ИГРОВЫЕ ПЕРЕМЕННЫЕ ==============
+        let gameState = {
+            player1Score: 0,
+            player2Score: 0,
+            gameId: null,
+            playerId: null,
+            targetScore: 50,
+            gameActive: true
+        };
+
+        const MAX_SCORE = 50;
+        const GAME_ID = 'game_' + Math.random().toString(36).substr(2, 9);
+        const PLAYER_ID = Math.random() < 0.5 ? 1 : 2;
+
+        // ============== ЗВУКИ ==============
+        function playSound(soundName) {
+            // Создаем звуки используя Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            if (soundName === 'click') {
+                // Звук клика
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = 800;
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                osc.start(audioContext.currentTime);
+                osc.stop(audioContext.currentTime + 0.1);
+            } else if (soundName === 'victory') {
+                // Звук победы
+                const notes = [523, 587, 659, 784];
+                let delay = 0;
+                notes.forEach((freq, index) => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.3, audioContext.currentTime + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + delay + 0.3);
+                    osc.start(audioContext.currentTime + delay);
+                    osc.stop(audioContext.currentTime + delay + 0.3);
+                    delay += 0.15;
+                });
+            }
+        }
+
+        // ============== ИНИЦИАЛИЗАЦИЯ FIREBASE ==============
+        function initializeGame() {
+            if (!firebaseReady) {
+                console.error('Firebase не инициализирован. Используется локальный режим.');
+                return;
+            }
+
+            gameState.gameId = GAME_ID;
+            gameState.playerId = PLAYER_ID;
+
+            // Создаем игровую сессию в Firebase
+            const gameRef = ref(database, `games/${GAME_ID}`);
+            
+            set(gameRef, {
+                player1Score: 0,
+                player2Score: 0,
+                gameActive: true,
+                createdAt: new Date().toISOString()
+            });
+
+            // Слушаем изменения от второго игрока
+            onValue(gameRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    gameState.player1Score = data.player1Score || 0;
+                    gameState.player2Score = data.player2Score || 0;
+                    updateUI();
+                    
+                    // Проверяем победителя
+                    if (data.player1Score >= MAX_SCORE || data.player2Score >= MAX_SCORE) {
+                        endGame();
+                    }
+                }
+            });
+        }
+
+        // ============== ОБНОВЛЕНИЕ СЧЕТА ==============
+        function updateScoreInFirebase(playerId, newScore) {
+            if (!firebaseReady) {
+                return;
+            }
+
+            const gameRef = ref(database, `games/${GAME_ID}`);
+            const updateData = {};
+            
+            if (playerId === 1) {
+                updateData.player1Score = newScore;
+            } else {
+                updateData.player2Score = newScore;
+            }
+            
+            update(gameRef, updateData);
+        }
+
+        // ============== UI ОБНОВЛЕНИЯ ==============
+        function updateUI() {
+            // Обновляем счет
+            document.getElementById('player1Score').textContent = gameState.player1Score;
+            document.getElementById('player2Score').textContent = gameState.player2Score;
+
+            // Обновляем статус
+            document.getElementById('player1Status').textContent = 
+                `Player 1: ${gameState.player1Score}/${MAX_SCORE}`;
+            document.getElementById('player2Status').textContent = 
+                `Player 2: ${gameState.player2Score}/${MAX_SCORE}`;
+
+            // Анимация прогресса
+            if (gameState.player1Score > gameState.player2Score) {
+                document.getElementById('player1Section').style.transform = 'scale(1.02)';
+            } else if (gameState.player2Score > gameState.player1Score) {
+                document.getElementById('player2Section').style.transform = 'scale(1.02)';
+            } else {
+                document.getElementById('player1Section').style.transform = 'scale(1)';
+                document.getElementById('player2Section').style.transform = 'scale(1)';
+            }
+        }
+
+        // ============== ЧАСТИЦЫ КЛИКОВ ==============
+        function createClickParticle(event, playerClass) {
+            const rect = event.target.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+
+            const particle = document.createElement('div');
+            particle.className = `click-particle ${playerClass}`;
+            particle.textContent = '+1';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            document.body.appendChild(particle);
+
+            setTimeout(() => particle.remove(), 1000);
+        }
+
+        // ============== ОБРАБОТЧИКИ КЛИКОВ ==============
+        document.getElementById('player1Button').addEventListener('click', (e) => {
+            if (!gameState.gameActive) return;
+
+            gameState.player1Score++;
+            playSound('click');
+            createClickParticle(e, 'player1');
+            updateScoreInFirebase(1, gameState.player1Score);
+            updateUI();
+
+            if (gameState.player1Score >= MAX_SCORE) {
+                endGame();
+            }
+        });
+
+        document.getElementById('player2Button').addEventListener('click', (e) => {
+            if (!gameState.gameActive) return;
+
+            gameState.player2Score++;
+            playSound('click');
+            createClickParticle(e, 'player2');
+            updateScoreInFirebase(2, gameState.player2Score);
+            updateUI();
+
+            if (gameState.player2Score >= MAX_SCORE) {
+                endGame();
+            }
+        });
+
+        // ============== ЗАВЕРШЕНИЕ ИГРЫ ==============
+        function endGame() {
+            gameState.gameActive = false;
+            playSound('victory');
+
+            const winner = gameState.player1Score >= MAX_SCORE ? 1 : 2;
+            const winnerScore = Math.max(gameState.player1Score, gameState.player2Score);
+
+            // Выделяем победителя
+            if (winner === 1) {
+                document.getElementById('player1Section').classList.add('winning');
+            } else {
+                document.getElementById('player2Section').classList.add('winning');
+            }
+
+            // Показываем модаль победы
+            setTimeout(() => {
+                document.getElementById('winnerName').textContent = `Player ${winner}`;
+                document.getElementById('winnerName').className = 
+                    `winner-name ${winner === 1 ? 'player1' : 'player2'}`;
+                document.getElementById('winnerScore').textContent = `Score: ${winnerScore}`;
+                document.getElementById('winnerModal').classList.add('active');
+            }, 500);
+        }
+
+        // ============== ПЕРЕЗАГРУЗКА ИГРЫ ==============
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            // Сбрасываем состояние
+            gameState.player1Score = 0;
+            gameState.player2Score = 0;
+            gameState.gameActive = true;
+
+            // Скрываем модаль
+            document.getElementById('winnerModal').classList.remove('active');
+
+            // Убираем классы победы
+            document.getElementById('player1Section').classList.remove('winning');
+            document.getElementById('player2Section').classList.remove('winning');
+
+            // Очищаем Firebase
+            if (firebaseReady) {
+                const gameRef = ref(database, `games/${GAME_ID}`);
+                set(gameRef, {
+                    player1Score: 0,
+                    player2Score: 0,
+                    gameActive: true,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            updateUI();
+        });
+
+        // ============== ЗАПУСК ИГРЫ ==============
+        initializeGame();
+        updateUI();
+    </script>
+</body>
+</html>
